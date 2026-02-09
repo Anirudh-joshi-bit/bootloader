@@ -19,12 +19,9 @@ OPTIMISATION = -O0
 # no os or libs gurentee startup provided by system or syscalls
 # it remove some assumption that compiler makes
 FREESTANDING = -ffreestanding 
-
-FLASH_BASE = 0x08000000
-SECTOR_SIZE = 0X4000
-SECTOR_NUMBER = 1
-
-FLASH_ADDRESS = $(shell printf "0x%X\n" $$(( $(FLASH_BASE) + $(SECTOR_SIZE) * $(SECTOR_NUMBER) )))
+ 
+# sector number 4 -> size = 64KB
+FLASH_ADDRESS = 0x08010000
 
 
 C_SRC_FILES = $(wildcard $(SRC)/*.c)
@@ -58,7 +55,7 @@ start_debug_client : $(ELF)
 
 $(BIN) : $(ELF)
 	# without --gap-fill=0xff -> no bytes will be emitted for padding (bad for crc)
-	$(OBJCPY) -O binary --gap-fill=0xff $(ELF) $(BIN)
+	$(OBJCPY) -O binary --gap-fill=0x00 $(ELF) $(BIN)
 
 $(ELF) : $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES)
 	$(LD) -T $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES) -o $(ELF)

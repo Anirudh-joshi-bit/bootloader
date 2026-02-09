@@ -6,11 +6,13 @@
 .global Header
 .type Header, %object
 Header:
+    .word 0xfffffffe
     .word 0x36f7efd8
     .word 0x0
-    .word _size_firmware
+    .word _firmware_start
     .word _svtable
-    .word _eidata
+    .word _firmware_end
+
 
 .size Header, . - Header
 

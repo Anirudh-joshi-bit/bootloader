@@ -2,19 +2,18 @@ ENTRY(Reset_Handler)
 
 MEMORY
 {
-    FLASH (rx)  : ORIGIN = 0x08008000, LENGTH = 16K
+    FLASH (rx)  : ORIGIN = 0x08020000, LENGTH = 128K
     RAM   (rwx) : ORIGIN = 0x20010000, LENGTH = 32K
 }
 
 SECTIONS
 {
-    _sfirmware = . ;
     .Header :
     {   
+        _sfirmware = . ;
         KEEP(*(.Header))
 
     } > FLASH
-    /*size of the header is fixed = 2w*/
 
     /*important allignment if adding headers into the firmware*/
     .isr_vector ALIGN(256) :
@@ -23,10 +22,8 @@ SECTIONS
         KEEP(*(.isr_vector))
         _evtable = . ;
     } > FLASH
-    
-    /*size of vector table*/
-    _size_vtable = _evtable - _svtable ;
-        
+     
+
     .text :
     {
         _stext = . ;
@@ -34,9 +31,6 @@ SECTIONS
         _etext = . ;
     } > FLASH
     
-    /*size of the text segment*/
-    _size_text = _etext - _stext ;
-
 
     .rodata :
     {
@@ -44,9 +38,6 @@ SECTIONS
         *(.rodata*)
         _erodata = . ;
     } > FLASH
-
-    /*size of read only data in flash*/
-    _size_rodata = _erodata - _srodata;
 
 
     .ARM.exidx :
@@ -63,11 +54,16 @@ SECTIONS
         . = ALIGN (4);
         _edata = .;
     } > RAM AT > FLASH
-    _eidata = LOADADDR (.data);
+    
 
-    /*size of the data section in falsh*/
-    _size_data = _edata - _sdata;
-    _size_firmware = LOADADDR (.data) + _size_data - ORIGIN (FLASH);
+    _firmware_start = ORIGIN (FLASH);
+
+    .fw_end :
+    {
+        . = ALIGN (4);
+        _firmware_end = . ;
+
+    } > FLASH
 
     .bss (NOLOAD) :
     {

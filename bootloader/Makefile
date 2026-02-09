@@ -61,11 +61,11 @@ $(BIN) : $(ELF)
 	$(OBJCPY) -O binary $(ELF) $(BIN)
 
 $(ELF) : $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES)
-	$(LD) -T $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES) -o $(ELF)
+	$(CC) -nostartfiles -Wl,--gc-sections  -T $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES) -o $(ELF)
 
 $(BUILD)/%_c_.o : $(SRC)/%.c 
 		
-	$(CC) -c -g $(INCLUDE_CMSIS_HEADERS) $(MPU) $(OPTIMISATION) $(FREESTANDING) $< -o $@
+	$(CC) -c -g $(INCLUDE_CMSIS_HEADERS) $(MPU) $(FREESTANDING) -O0 -g3 -fno-inline $< -o $@
 
 $(BUILD)/%_as_.o : $(SRC)/%.s
 	

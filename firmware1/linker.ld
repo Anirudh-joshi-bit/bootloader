@@ -2,13 +2,12 @@ ENTRY(Reset_Handler)
 
 MEMORY
 {
-    FLASH (rx)  : ORIGIN = 0x08004000, LENGTH = 16K
+    FLASH (rx)  : ORIGIN = 0x08010000, LENGTH = 64K
     RAM   (rwx) : ORIGIN = 0x20008000, LENGTH = 32K
 }
 
 SECTIONS
 {
-    _sfirmware = . ;
     .Header :
     {   
         KEEP(*(.Header))
@@ -28,9 +27,6 @@ SECTIONS
         _evtable = . ;
     } > FLASH
     
-    /*size of vector table*/
-    _size_vtable = _evtable - _svtable ;
-        
 
     .text :
     {
@@ -39,9 +35,6 @@ SECTIONS
         _etext = . ;
     } > FLASH
     
-    /*size of the text segment*/
-    _size_text = _etext - _stext ;
-
 
     .rodata :
     {
@@ -49,9 +42,6 @@ SECTIONS
         *(.rodata*)
         _erodata = . ;
     } > FLASH
-
-    /*size of read only data in flash*/
-    _size_rodata = _erodata - _srodata;
 
 
     .ARM.exidx :
@@ -68,11 +58,20 @@ SECTIONS
         . = ALIGN (4);
         _edata = .;
     } > RAM AT > FLASH
-    _eidata = LOADADDR (.data);
 
-    /*size of the data section in falsh*/
-    _size_data = _edata - _sdata;
-    _size_firmware = LOADADDR (.data) + _size_data - ORIGIN (FLASH);
+/* remember .. all the symbol resolves into addresses these are not variables
+ * hence thinking of storing size in a symbol is not resonable*/
+
+    
+    _firmware_start = ORIGIN (FLASH);
+
+    .fw_end :
+    {
+        . = ALIGN (4);
+        _firmware_end = .;
+
+    }> FLASH
+
 
     /* .bss will not take any flash space */
     .bss (NOLOAD) :

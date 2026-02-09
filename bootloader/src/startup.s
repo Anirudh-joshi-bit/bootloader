@@ -9,7 +9,12 @@
 vector_table:
     .word _estack           // msp value
     .word Reset_Handler     
-    .rept 54
+    
+    .rept 14
+        .word Danger_Handler 
+    .endr
+
+    .rept 40
         .word Default_Handler
     .endr
 
@@ -89,3 +94,16 @@ Default_Handler :
     B .
 
 .size Default_Handler, . - Default_Handler
+
+
+/********************Danger_Handler**********************************/
+.section .text.Danger_Handler
+.global Danger_Handler
+.type Danger_Handler, %function
+
+Danger_Handler:
+    B .
+
+.size Danger_Handler, . - Danger_Handler
+
+

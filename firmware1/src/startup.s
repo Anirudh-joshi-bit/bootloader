@@ -7,11 +7,13 @@
 .global Header
 .type Header, %object
 Header:
+    .word   0xffffffff          // flag (for firmware update rollback)
     .word   0xd7f6da72              // base of the header and firmware (crc)
     .word   0x0             // digital signature
-    .word   _sfirmware        // starting address
+    .word   _firmware_start        // starting address
     .word   _svtable       // vector table base address
-    .word   _eidata          // end address (for crc)
+    .word   _firmware_end          // end address (for crc)
+
 
 .size Header, . - Header
 

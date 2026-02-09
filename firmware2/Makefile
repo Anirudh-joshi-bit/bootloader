@@ -20,11 +20,8 @@ OPTIMISATION = -O0
 # it remove some assumption that compiler makes
 FREESTANDING = -ffreestanding 
 
-FLASH_BASE = 0x08000000
-SECTOR_SIZE = 0x4000
-SECTOR_NUMBER = 2
-
-FLASH_ADDRESS = $(shell printf "0x%X\n" $$(( $(FLASH_BASE) + $(SECTOR_SIZE) * $(SECTOR_NUMBER) )))
+# sector number = 5 size = 128kB
+FLASH_ADDRESS = 0x08020000
 
 C_SRC_FILES = $(wildcard $(SRC)/*.c)
 AS_SRC_FILES = $(wildcard $(SRC)/*.s)
@@ -56,7 +53,7 @@ start_debug_client : $(ELF)
 	$(GDB) $(ELF)
 
 $(BIN) : $(ELF)
-	$(OBJCPY) -O binary --gap-fill=0xff $(ELF) $(BIN)
+	$(OBJCPY) -O binary --gap-fill=0x00 $(ELF) $(BIN)
 
 $(ELF) : $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES)
 	$(LD) -T $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES) -o $(ELF)
