@@ -7,8 +7,8 @@ char fw_update[MAX_FW_SIZE];
 // although the actual address ends with 0;
 // but the last bit must be 1 (while fetching instruction) to be in thumb mode
 // .. else arm mode = hard fault (in cm)
-volatile firmware_t f1;
-volatile firmware_t f2;
+firmware_t f1;
+firmware_t f2;
 volatile bool boot_f1 = true;
 volatile uint32_t press_count = 0;
 volatile uint32_t delay_count = 0;
@@ -18,7 +18,7 @@ volatile uint32_t fw_ar_ind = 0;
 volatile bool update_rec_complete = false; // flag to tell if update is recieved
 volatile uint32_t update_size = 0;
 
-void init_firmware_t(uint32_t address, volatile firmware_t *f) {
+void init_firmware_t(uint32_t address, firmware_t *f) {
   f->__flag = *(volatile uint32_t *)(address + 0x00);
   f->__crc = *((volatile uint32_t *)(address + 0x04));
   f->__digital_signature = *((volatile uint32_t *)(address + 0x08));
@@ -31,18 +31,36 @@ void init_firmware_t(uint32_t address, volatile firmware_t *f) {
   f->__reset_handler = *((volatile uint32_t *)(f->__vtable_address + 0x4));
 }
 
-void handle_update(void) {
-    
-    printf ("the value in address 0x08020394 is -> %\n\r", 0x08020394);
+void copy_firmware_t(firmware_t *f_dest, firmware_t *f_src) {
 
+  f_dest->__base_address = f_src->__base_address;
+  f_dest->__flag = f_src->__flag;
+  f_dest->__crc = f_src->__crc;
+  f_dest->__digital_signature = f_src->__digital_signature;
+  f_dest->__firmware_start = f_src->__firmware_start;
+  f_dest->__vtable_address = f_src->__vtable_address;
+  f_dest->__firmware_end = f_src->__firmware_end;
+  f_dest->__firmware_size = f_src->__firmware_size;
+  f_dest->__msp_value = f_src->__msp_value;
+  f_dest->__reset_handler = f_src->__reset_handler;
+}
+
+void handle_update(void) {
+
+  /************************* recieve update and store it in
+   * RAM***********************/
 
   if (recieve_update()) {
     printf("ERROR in recieving update\n\r", 0x0);
     return;
   }
-  update_size = update_size / 4 * 4 + 4;    // align update size by 4bytes
+  update_size = update_size / 4 * 4 + 4; // align update size by 4bytes
+
+  /******************** store the update in UPDATE section
+   * ***************************/
+
   if (!erase_flash(UPDATE_ADDR)) {
-    if (flash_write(UPDATE_ADDR, fw_update, update_size)) {
+    if (flash_write(UPDATE_ADDR, fw_update, update_size, NO_DELAY)) {
       printf("ERROR in flash_write\n\r", 0x0);
       return;
     }
@@ -52,60 +70,72 @@ void handle_update(void) {
   }
 
   printf("update has been saved in the update section !!!\n\r", 0x0);
+  firmware_t f;
 
-  if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_1_ADDRESS) {
-    firmware_t uf1;
-    init_firmware_t(UPDATE_ADDR, &uf1);
+  if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_1_ADDRESS)
+    copy_firmware_t(&f, &f1);
 
-    erase_flash(COPY_ADDR);
-    flash_write(COPY_ADDR, (const char *)(FIRMWARE_1_ADDRESS),
-                f1.__firmware_size);                        // check this !!
-    printf("firmware_1 is copied to copy section\n\r", 0x0);
+  else if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_2_ADDRESS)
+    copy_firmware_t(&f, &f2);
 
-    erase_flash(FIRMWARE_1_ADDRESS);
-    flash_write (FIRMWARE_1_ADDRESS, (const char *)(UPDATE_ADDR), uf1.__firmware_size);
-
-
-    const char end = 0xfe;
-    flash_write (FIRMWARE_1_ADDRESS, &end, 1);
-
-    printf ("new flag = %\n\r", FIRMWARE_1_ADDRESS);
-
-    printf ("updating firmware1 is done successfully!!!!\n\r", 0x0);
-
-
-  } else if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_2_ADDRESS) {
-    firmware_t uf2;
-    init_firmware_t(UPDATE_ADDR, &uf2);
-
-    // fill the copy sector with firmware_2;
-
-    erase_flash(COPY_ADDR);
-    flash_write(COPY_ADDR, (const char *)(FIRMWARE_2_ADDRESS),
-                f2.__firmware_size);                        // check this !!
-    
-    printf("firmware_2 is copied to copy section\n\r", 0x0);
-
-    erase_flash(FIRMWARE_2_ADDRESS);
-    flash_write(FIRMWARE_2_ADDRESS, (const char *)(UPDATE_ADDR), uf2.__firmware_size);
- 
-    const char end = 0xfe;
-    flash_write(FIRMWARE_2_ADDRESS, &end, 1);
-
-    printf ("new flag = %\n\r", FIRMWARE_2_ADDRESS);
-
-    printf ("updating firmware2 is done successfully!!!!\n\r", 0x0);
-
-
-  } else {
-
+  else {
     printf("wrong firmware address !!!", 0x0);
     return;
   }
+  firmware_t uf;
+  init_firmware_t(UPDATE_ADDR, &uf);
+
+  /************************firmware to COPY section
+   * ***********************************/
+
+  if (erase_flash(COPY_ADDR)) {
+    printf("could not erase COPY section\n\r", 0x0);
+    return;
+  }
+  if (flash_write(COPY_ADDR, (const char *)(f.__base_address),
+                  f.__firmware_size, NO_DELAY)) {
+
+    printf("could not write to the COPY section \n\r", 0x0);
+    return;
+  } // check this !!
+  printf("firmware is copied to copy section\n\r", 0x0);
+
+  /********************* update to firmware
+   * ********************************************/
+
+  if (erase_flash(f.__base_address)) {
+    printf("could not erase FIRMWARE section\n\r", 0x0);
+    return;
+  }
+  if (flash_write(f.__base_address, (const char *)(UPDATE_ADDR),
+                  uf.__firmware_size, NO_DELAY)) {
+
+    printf("could not write to the firmware section\n\r", 0x0);
+    return;
+  }
+
+  const uint32_t end = 0xfffffffe;
+  // mark the flag implying that firmware has been updated
+  flash_write(f.__base_address, (const char*)(&end), 4, NO_DELAY);
+
+  printf("new flag = %\n\r", f.__base_address);
+
+  printf("updating firmware is done successfully!!!!\n\r", 0x0);
 }
 
 int main() {
   __usart1_init();
+
+  printf("booting....\n\n\n\r", 0x0);
+
+  // check if fimrware is corrupted during update
+
+  if (*(uint32_t *)FIRMWARE_1_ADDRESS & 1) {
+    rollback();
+  }
+  if (*(uint32_t *)FIRMWARE_2_ADDRESS & 1) {
+    rollback();
+  }
 
   bool f1_valid = true;
   bool f2_valid = true;
@@ -114,8 +144,8 @@ int main() {
 
   // printf("hii there %\n\r", f1.__vtable_address);
 
-  // f1_valid = validate_firmware(&f1);
-  // f2_valid = validate_firmware(&f2);
+  f1_valid = validate_firmware(&f1);
+  f2_valid = validate_firmware(&f2);
 
   printf("both the firmwares are checked\n\r", 0x0);
   // init GPIOC (for on board switch)

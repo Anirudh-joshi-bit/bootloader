@@ -1,4 +1,5 @@
 #include "../include/commons.h"
+#include <stdint.h>
 #define TX_PIN 9
 #define RX_PIN 10
 #define KEY1 0x45670123
@@ -13,6 +14,12 @@ uint32_t strlen(const char *msg) {
   while (msg[i++] != '\0')
     ;
   return i - 1;
+}
+
+void delay(uint32_t count) {
+
+  while (count--)
+    ;
 }
 
 void __usart1_init(void) {
@@ -152,11 +159,18 @@ uint32_t erase_flash(uint32_t address) {
   // lock the control register
   FLASH->CR |= FLASH_CR_LOCK;
 
-  printf ("done erasing flash (address = %)\n\r",(uint32_t) (&address));
+  printf("done erasing flash (address = %)\n\r", (uint32_t)(&address));
   return 0;
 }
 
-uint32_t flash_write(uint32_t address, const char *buff, uint32_t size) {
+uint32_t flash_write(uint32_t address, const char *buff, uint32_t size,
+                     uint32_t simulate) {
+
+  if (simulate) {
+    printf("heavy delay is used here .. press the reset button for simulating "
+           "power off in this stage\n\r",
+           0x0);
+  }
 
   // unlock
   FLASH->KEYR = KEY1;
@@ -174,13 +188,19 @@ uint32_t flash_write(uint32_t address, const char *buff, uint32_t size) {
     ;
   FLASH->CR |= FLASH_CR_PG;
   FLASH->CR &= ~(3 << FLASH_CR_PSIZE_Pos);
+  // set PSIZE bit to 2 for 32 bit programming
+  FLASH->CR |= 2 << FLASH_CR_PSIZE_Pos;
 
   uint32_t i = 0;
-  while (i < size) {
+  while (i < size / 4) {
 
-    *((char *)address) = buff[i];
+    if (i == size / 8) {
+      delay(simulate);
+    }
+
+    *((uint32_t *)address) = ((const uint32_t *)buff)[i];
     i++;
-    address++;
+    address += 4;
   }
   FLASH->CR &= ~(FLASH_CR_PG);
   FLASH->CR |= FLASH_CR_LOCK;
@@ -195,9 +215,9 @@ uint32_t recieve_update() {
     while (!(USART1->SR & USART_SR_RXNE))
       ;
     char digit = USART1->DR;
-    if (digit == '\0'){
-        printf ("got the size !! -> %\n\r", (uint32_t) (&update_size));
-        break;
+    if (digit == '\0') {
+      printf("got the size !! -> %\n\r", (uint32_t)(&update_size));
+      break;
     }
     if (digit < '0' || digit > '9') {
       printf("wrong size !!!\n\r", 0x0);
@@ -221,4 +241,28 @@ uint32_t recieve_update() {
   }
   printf("data recieved !!! yehhhh \n\n\r", 0x0);
   return 0;
+}
+
+void rollback(void) {
+
+  firmware_t old_f;
+  // old firmware is present in the COPY_ADDR section
+  init_firmware_t(COPY_ADDR, &old_f);
+
+  printf("startign rollback\n\n\r", 0x0);
+  erase_flash(old_f.__base_address);
+  printf("corupted firmware is erased\n\r", 0x0);
+
+  uint32_t copy_size =
+      (*(uint32_t *)(COPY_ADDR + 0x14)) - (*(uint32_t *)(COPY_ADDR + 0x0c));
+  flash_write(old_f.__base_address + 0x04, (const char *)(COPY_ADDR + 0x04),
+              copy_size - 0x04, NO_DELAY);
+
+  // word write => size would be 4 (not 2)
+  const uint32_t end = 0xfffffffe;
+  // &end is of type -> uint32_t * ==> need type conversion
+  flash_write(old_f.__base_address,(const char *)(&end), 4, NO_DELAY);
+  printf("new flag = %\n\r", old_f.__base_address);
+
+  printf("done recovering old firmware \n\r", 0x0);
 }

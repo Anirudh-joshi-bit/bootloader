@@ -14,7 +14,6 @@ Header:
     .word   _svtable       // vector table base address
     .word   _firmware_end          // end address (for crc)
 
-
 .size Header, . - Header
 
 

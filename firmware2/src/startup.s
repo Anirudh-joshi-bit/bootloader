@@ -13,7 +13,6 @@ Header:
     .word _svtable
     .word _firmware_end
 
-
 .size Header, . - Header
 
 

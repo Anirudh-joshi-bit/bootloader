@@ -10,7 +10,8 @@
 #define COPY_ADDR 0x08060000
 #define MAX_FW_SIZE 6000            // max size = 6000 chars
 #define MAX_COMMAND_SIZE 10
-
+#define DELAY 1000000000
+#define NO_DELAY 0
 
 
 typedef struct firmware_struct {
