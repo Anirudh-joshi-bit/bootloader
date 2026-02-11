@@ -3,8 +3,7 @@
 
 bool validate_firmware(firmware_t *f) {
 
-
-  // uint32_t crc_result = crc_calc(f->__vtable_address, f->__firmware_end);
-  // return crc_result == f->__crc;
-  return true;
+  uint32_t crc_result = crc_calc(f);
+  printf ("crc value is -> %\n\r",(uint32_t)(&crc_result));
+  return crc_result == f->__crc;
 }

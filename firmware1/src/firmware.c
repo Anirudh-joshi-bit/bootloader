@@ -14,6 +14,7 @@ void delay(uint32_t count) {
 }
 
 int main(void) {
+  __enable_irq();
 
   // enable clock for GPIOC, GPIOA, SYSCFG (for remapping gpio)
   RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN_Msk;

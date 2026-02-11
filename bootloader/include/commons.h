@@ -9,7 +9,7 @@
 // functions
 void jump_to_firmware ();
 bool validate_firmware (firmware_t *f);
-uint32_t crc_calc (volatile uint32_t base_addr, volatile uint32_t last_addr);
+uint32_t crc_calc (firmware_t *fw);
 void __usart1_init (void);
 void __usart1_print (const char *msg, uint32_t size);
 void printf (const char* msg, uint32_t addr);

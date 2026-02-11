@@ -22,11 +22,11 @@ void init_firmware_t(uint32_t address, firmware_t *f) {
   f->__flag = *(volatile uint32_t *)(address + 0x00);
   f->__crc = *((volatile uint32_t *)(address + 0x04));
   f->__digital_signature = *((volatile uint32_t *)(address + 0x08));
-  f->__firmware_start = *((volatile uint32_t *)(address + 0x0c));
-  f->__base_address = f->__firmware_start;
+  f->__base_address = *((volatile uint32_t *)(address + 0x0c));
+  f->__crc_start_addr = f->__base_address + 0x08; // start crc cal from ds field
   f->__vtable_address = *((volatile uint32_t *)(address + 0x10));
   f->__firmware_end = *((volatile uint32_t *)(address + 0x14));
-  f->__firmware_size = f->__firmware_end - f->__firmware_start;
+  f->__firmware_size = f->__firmware_end - f->__base_address;
   f->__msp_value = *((volatile uint32_t *)(f->__vtable_address));
   f->__reset_handler = *((volatile uint32_t *)(f->__vtable_address + 0x4));
 }
@@ -37,7 +37,7 @@ void copy_firmware_t(firmware_t *f_dest, firmware_t *f_src) {
   f_dest->__flag = f_src->__flag;
   f_dest->__crc = f_src->__crc;
   f_dest->__digital_signature = f_src->__digital_signature;
-  f_dest->__firmware_start = f_src->__firmware_start;
+  f_dest->__crc_start_addr = f_src->__crc_start_addr;
   f_dest->__vtable_address = f_src->__vtable_address;
   f_dest->__firmware_end = f_src->__firmware_end;
   f_dest->__firmware_size = f_src->__firmware_size;
@@ -116,7 +116,7 @@ void handle_update(void) {
 
   const uint32_t end = 0xfffffffe;
   // mark the flag implying that firmware has been updated
-  flash_write(f.__base_address, (const char*)(&end), 4, NO_DELAY);
+  flash_write(f.__base_address, (const char *)(&end), 4, NO_DELAY);
 
   printf("new flag = %\n\r", f.__base_address);
 

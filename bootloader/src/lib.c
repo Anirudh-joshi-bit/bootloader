@@ -215,12 +215,13 @@ uint32_t recieve_update() {
     while (!(USART1->SR & USART_SR_RXNE))
       ;
     char digit = USART1->DR;
-    if (digit == '\0') {
+    if (digit == '\n') {
       printf("got the size !! -> %\n\r", (uint32_t)(&update_size));
       break;
     }
     if (digit < '0' || digit > '9') {
       printf("wrong size !!!\n\r", 0x0);
+        printf ("size = %\n\r", (uint32_t)(&update_size));
       return -1;
     }
     update_size = update_size * 10 + (digit - '0');

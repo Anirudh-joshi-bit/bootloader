@@ -7,7 +7,6 @@ bool on_board_switch_falling = true;
 volatile uint32_t header_CRC_add = 0x08008000;
 volatile uint32_t header_size_add = 0x08008004;
 
-
 void do_something(void) {
 
   while (1) {
@@ -15,7 +14,7 @@ void do_something(void) {
 }
 
 int main(void) {
-
+  __enable_irq();
   // enable clock for GPIOC, GPIOA, SYSCFG (for remapping gpio)
   RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN_Msk;
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN_Msk;
@@ -39,13 +38,11 @@ int main(void) {
   // enable EXIT13
   EXTI->IMR |= EXTI_IMR_MR13_Msk;
 
-
   // enable NVIc EXTI15_10_IRQn to make the cpu recognise the interrupt
   NVIC_EnableIRQ(EXTI15_10_IRQn);
 
   // clear the bit
   GPIOA->ODR &= ~(1 << LED_PIN);
-
 
   do_something();
 }
