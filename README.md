@@ -70,3 +70,6 @@ STM32F401RE Bootloader
 *    Encripted firmware update
 
 
+Demonstration link -> https://www.youtube.com/watch?v=BqOucunvT6A
+
+
