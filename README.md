@@ -1,7 +1,7 @@
 STM32F401RE Bootloader
-======================
+=====================
 
-    This project implements a custom bare-metal bootloader for the STM32F401RE microcontroller, designed to enable reliable and power-loss-safe firmware updates. The bootloader directly manages internal flash memory  and prevents execution of incomplete or corrupted firmware images. On reset, it validates the application using onboard crc, safely reinitializes the stack pointer and vector table, and transfers control to the application if a valid image is present. The system is developed entirely from the STM32 reference manual without using vendor bootloader frameworks.
+* This project implements a custom bare-metal bootloader for the STM32F401RE microcontroller, designed to enable reliable and power-loss-safe firmware updates. The bootloader directly manages internal flash memory  and prevents execution of incomplete or corrupted firmware images. On reset, it validates the application using onboard crc, safely reinitializes the stack pointer and vector table, and transfers control to the application if a valid image is present. The system is developed entirely from the STM32 reference manual without using vendor bootloader frameworks.
 
 # Features
 
@@ -45,28 +45,28 @@ STM32F401RE Bootloader
 * if the above message is not printed, the user need to reupload the update 
     
 # Roll Back strategy ->
-    if flag is not cleared , old fimrware is retrieved from the COPY section . At the end of this operation flag is cleared
+*    if flag is not cleared , old fimrware is retrieved from the COPY section . At the end of this operation flag is cleared
 
 # Vector table sanity check ->
-    1. for update, flag must be 0xffffffff
-    2. MSP (first entry of vtable) must lie in the allowed RAM range
-    3. MSP must be word aligned (cortex M4 rule)
-    4. vtable must be 128byte aligned (for STM32F401RE)
-    5. all the vtable entries must store addresses that are in allowed range of FLASH
+* 1. for update, flag must be 0xffffffff
+* 2. MSP (first entry of vtable) must lie in the allowed RAM range
+* 3. MSP must be word aligned (cortex M4 rule)
+* 4. vtable must be 128byte aligned (for STM32F401RE)
+* 5. all the vtable entries must store addresses that are in allowed range of FLASH
     
 
 # firmware check mechanism ->
-    onboard CRC calculates the crc of firmwares and compares it aginst CRC present in their header
-    bootloader scans through the vector table and check for the validity of addresses (vtable entries)
+*   onboard CRC calculates the crc of firmwares and compares it aginst CRC present in their header
+*   bootloader scans through the vector table and check for the validity of addresses (vtable entries)
 
 # Application Jump Mechanism ->
-    1. mask all the maskable interrupt (so that interrupt cannot be triggered in between step 1 and step 2 )
-    step1. change MSP to the first entry of the vector table
-    step2. write the vector table address in VTOR regist in NVIC
-    step3. branch to the address specified in second entry of the vector table (Reset_Handler)
+*  mask all the maskable interrupt (so that interrupt cannot be triggered in between step 1 and step 2 )
+*    step1. change MSP to the first entry of the vector table
+*    step2. write the vector table address in VTOR regist in NVIC
+*    step3. branch to the address specified in second entry of the vector table (Reset_Handler)
 
 # Possible Improvements ->
-    Secure boot can be implemented using digital signature
-    Encripted firmware update
+*    Secure boot can be implemented using digital signature
+*    Encripted firmware update
 
 
