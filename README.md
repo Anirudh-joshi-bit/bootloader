@@ -10,7 +10,7 @@ STM32F401RE Bootloader
 * update a firmware using USART 
 * Logging using USART 
 * Rollback system for reliable firmware update 
-* 
+ 
 
 # Flash Layout
 
