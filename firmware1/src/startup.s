@@ -8,9 +8,9 @@
 .type Header, %object
 Header:
     .word   0xffffffff          // flag (for firmware update rollback)
-    .word   0x7e2daaa4              // base of the header and firmware (crc)
-    .word   0x0             // digital signature
-    .word   _firmware_start        // starting address
+    .word   0x5373ea7f          // base of the header and firmware (crc)   // change
+    .word   _evtable             // vtable end
+    .word   _header_start        // starting address
     .word   _svtable       // vector table base address
     .word   _firmware_end          // end address (for crc)
 

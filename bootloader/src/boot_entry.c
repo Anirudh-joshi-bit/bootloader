@@ -21,7 +21,7 @@ volatile uint32_t update_size = 0;
 void init_firmware_t(uint32_t address, firmware_t *f) {
   f->__flag = *(volatile uint32_t *)(address + 0x00);
   f->__crc = *((volatile uint32_t *)(address + 0x04));
-  f->__digital_signature = *((volatile uint32_t *)(address + 0x08));
+  f->__vtable_end = *((volatile uint32_t *)(address + 0x08));
   f->__base_address = *((volatile uint32_t *)(address + 0x0c));
   f->__crc_start_addr = f->__base_address + 0x08; // start crc cal from ds field
   f->__vtable_address = *((volatile uint32_t *)(address + 0x10));
@@ -36,7 +36,7 @@ void copy_firmware_t(firmware_t *f_dest, firmware_t *f_src) {
   f_dest->__base_address = f_src->__base_address;
   f_dest->__flag = f_src->__flag;
   f_dest->__crc = f_src->__crc;
-  f_dest->__digital_signature = f_src->__digital_signature;
+  f_dest->__vtable_end = f_src->__vtable_end;
   f_dest->__crc_start_addr = f_src->__crc_start_addr;
   f_dest->__vtable_address = f_src->__vtable_address;
   f_dest->__firmware_end = f_src->__firmware_end;
@@ -84,6 +84,18 @@ void handle_update(void) {
   }
   firmware_t uf;
   init_firmware_t(UPDATE_ADDR, &uf);
+    
+  printf ("***************validating update***************\n\r", 0x0);
+
+  // check flag field of the firmware
+  if (uf.__flag != 0xffffffff){
+    printf ("ERROR .... flag field of update must be 0xffffffff\n\r", 0x0);
+    return;
+  }
+  if (!validate_firmware(&uf)) {
+    printf("ERROR .... update validation failed\n\r", 0x0);
+    return;
+  }
 
   /************************firmware to COPY section
    * ***********************************/
@@ -126,7 +138,7 @@ void handle_update(void) {
 int main() {
   __usart1_init();
 
-  printf("booting....\n\n\n\r", 0x0);
+  printf("\n\n\nbooting....\n\n\n\r", 0x0);
 
   // check if fimrware is corrupted during update
 
@@ -144,7 +156,9 @@ int main() {
 
   // printf("hii there %\n\r", f1.__vtable_address);
 
+  printf ("*************validating firmware1*************\n\r", 0x0);
   f1_valid = validate_firmware(&f1);
+  printf ("*************validating firmware2*************\n\r", 0x0);
   f2_valid = validate_firmware(&f2);
 
   printf("both the firmwares are checked\n\r", 0x0);

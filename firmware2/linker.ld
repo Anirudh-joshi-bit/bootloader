@@ -22,8 +22,9 @@ SECTIONS
         KEEP(*(.isr_vector))
         _evtable = . ;
     } > FLASH
-     
 
+    _size_vtable = SIZEOF (.isr_vector);
+    
     .text :
     {
         _stext = . ;

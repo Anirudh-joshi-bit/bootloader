@@ -20,7 +20,7 @@ typedef struct firmware_struct {
     volatile uint32_t __base_address;
     volatile uint32_t __flag;
     volatile uint32_t __crc;
-    volatile uint32_t __digital_signature;
+    volatile uint32_t __vtable_end;
     volatile uint32_t __crc_start_addr;
     volatile uint32_t __vtable_address;
     volatile uint32_t __firmware_end;

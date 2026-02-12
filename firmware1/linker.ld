@@ -22,6 +22,8 @@ SECTIONS
         KEEP(*(.isr_vector))
         _evtable = . ;
     } > FLASH
+
+    _size_vtable = SIZEOF (.isr_vector);
     
 
     .text :
@@ -59,7 +61,7 @@ SECTIONS
  * hence thinking of storing size in a symbol is not resonable*/
 
     
-    _firmware_start = ORIGIN (FLASH);
+    _header_start = ORIGIN (FLASH);
 
     .fw_end :
     {

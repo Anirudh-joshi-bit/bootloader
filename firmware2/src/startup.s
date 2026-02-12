@@ -7,8 +7,8 @@
 .type Header, %object
 Header:
     .word 0xfffffffe
-    .word 0xea79494e 
-    .word 0x0
+    .word 0x77157063
+    .word _evtable
     .word _firmware_start
     .word _svtable
     .word _firmware_end
