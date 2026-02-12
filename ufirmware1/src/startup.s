@@ -3,6 +3,21 @@
 .thumb
 
 
+.section .Header, "a", %progbits
+.global Header
+.type Header, %object
+Header:
+    .word 0xffffffff
+    .word 0x79998d9a
+    .word _evtable
+    .word _header_start
+    .word _svtable
+    .word _firmware_end
+
+.size Header, . - Header
+
+
+
 .section .isr_vector, "a", %progbits
 .global g_pfnVectors
 .type g_pfnVectors, %object

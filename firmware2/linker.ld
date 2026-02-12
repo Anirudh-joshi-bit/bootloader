@@ -57,7 +57,7 @@ SECTIONS
     } > RAM AT > FLASH
     
 
-    _firmware_start = ORIGIN (FLASH);
+    _header_start = ORIGIN (FLASH);
 
     .fw_end :
     {

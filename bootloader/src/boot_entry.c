@@ -79,7 +79,7 @@ void handle_update(void) {
     copy_firmware_t(&f, &f2);
 
   else {
-    printf("wrong firmware address !!!", 0x0);
+    printf("wrong firmware base address !!!", 0x0);
     return;
   }
   firmware_t uf;

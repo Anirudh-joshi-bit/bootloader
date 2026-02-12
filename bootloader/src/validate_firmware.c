@@ -74,7 +74,7 @@ bool validate_firmware(firmware_t *f) {
   uint32_t crc_result = crc_calc(f);
   printf("crc value is -> %\n\r", (uint32_t)(&crc_result));
   if (crc_result != f->__crc) {
-    printf("update CRC failed\n\r", 0x0);
+    printf("CRC failed\n\r", 0x0);
     return false;
   }
   return true;

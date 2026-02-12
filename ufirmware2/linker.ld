@@ -2,7 +2,7 @@ ENTRY(Reset_Handler)
 MEMORY
 {
     FLASH (rx)  : ORIGIN = 0x08020000, LENGTH = 128K
-    RAM   (rwx) : ORIGIN = 0x20010000, LENGTH = 96K
+    RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 96K
 }
 /*
  *  add header section 
@@ -27,6 +27,7 @@ SECTIONS
     {
         _svtable = . ;
         KEEP(*(.isr_vector))
+        _evtable = . ;
     } > FLASH
 
     .text :
@@ -53,7 +54,7 @@ SECTIONS
         _edata = .;
     } > RAM AT > FLASH
 
-    _firmware_start = ORIGIN (FLASH);
+    _header_start = ORIGIN (FLASH);
 
     .fw_end :
     {
