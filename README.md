@@ -6,6 +6,7 @@ STM32F401RE Bootloader
 # Features
 
 * Jump to a firmware (1 or 2)
+* Safe jump
 * validate firmwae before running it
 * update a firmware using USART 
 * Logging using USART 
@@ -60,9 +61,12 @@ STM32F401RE Bootloader
 *   bootloader scans through the vector table and check for the validity of addresses (vtable entries)
 
 # Application Jump Mechanism ->
-*  mask all the maskable interrupt (so that interrupt cannot be triggered in between step 1 and step 2 )
+*  mask all the maskable interrupt (so that interrupt cannot be triggered in between step 1 and step 2 BUT, even after masking, interrupt can be pended )
+*    disable all the possible interrupts so that no more interrupt can be pended
+*    clear the pending status.
 *    step1. change MSP to the first entry of the vector table
 *    step2. write the vector table address in VTOR regist in NVIC
+*    step3. unmask interrupts
 *    step3. branch to the address specified in second entry of the vector table (Reset_Handler)
 
 # Possible Improvements ->

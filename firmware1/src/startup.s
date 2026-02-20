@@ -7,7 +7,7 @@
 .global Header
 .type Header, %object
 Header:
-    .word   0xffffffff          // flag (for firmware update rollback)
+    .word   0xfffffffe          // flag (for firmware update rollback)
     .word   0x5373ea7f          // base of the header and firmware (crc)   // change
     .word   _evtable             // vtable end
     .word   _header_start        // starting address

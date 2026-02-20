@@ -54,7 +54,19 @@ void handle_update(void) {
     printf("ERROR in recieving update\n\r", 0x0);
     return;
   }
+  firmware_t f;
   update_size = update_size / 4 * 4 + 4; // align update size by 4bytes
+
+  if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_1_ADDRESS)
+    copy_firmware_t(&f, &f1);
+
+  else if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_2_ADDRESS)
+    copy_firmware_t(&f, &f2);
+
+  else {
+    printf("wrong firmware base address !!!", 0x0);
+    return;
+  }
 
   /******************** store the update in UPDATE section
    * ***************************/
@@ -70,26 +82,15 @@ void handle_update(void) {
   }
 
   printf("update has been saved in the update section !!!\n\r", 0x0);
-  firmware_t f;
 
-  if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_1_ADDRESS)
-    copy_firmware_t(&f, &f1);
-
-  else if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_2_ADDRESS)
-    copy_firmware_t(&f, &f2);
-
-  else {
-    printf("wrong firmware base address !!!", 0x0);
-    return;
-  }
   firmware_t uf;
   init_firmware_t(UPDATE_ADDR, &uf);
-    
-  printf ("***************validating update***************\n\r", 0x0);
+
+  printf("***************validating update***************\n\r", 0x0);
 
   // check flag field of the firmware
-  if (uf.__flag != 0xffffffff){
-    printf ("ERROR .... flag field of update must be 0xffffffff\n\r", 0x0);
+  if (uf.__flag != 0xffffffff) {
+    printf("ERROR .... flag field of update must be 0xffffffff\n\r", 0x0);
     return;
   }
   if (!validate_firmware(&uf)) {
@@ -156,9 +157,9 @@ int main() {
 
   // printf("hii there %\n\r", f1.__vtable_address);
 
-  printf ("*************validating firmware1*************\n\r", 0x0);
+  printf("*************validating firmware1*************\n\r", 0x0);
   f1_valid = validate_firmware(&f1);
-  printf ("*************validating firmware2*************\n\r", 0x0);
+  printf("*************validating firmware2*************\n\r", 0x0);
   f2_valid = validate_firmware(&f2);
 
   printf("both the firmwares are checked\n\r", 0x0);
