@@ -27,5 +27,6 @@ typedef struct firmware_struct {
     volatile uint32_t __firmware_size;
     volatile uint32_t __msp_value;
     volatile uint32_t __reset_handler;
+    volatile uint32_t __crc_end_addr;
 
 } firmware_t ;
