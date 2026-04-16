@@ -139,6 +139,13 @@ void handle_update(void) {
 }
 
 int main() {
+    
+    // enable faults (without this any fault = hardfault)
+    SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
+    SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk;
+    SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
+
+
   __usart1_init();
 
   printf("\n\n\nbooting....\n\n\n\r", 0x0);
@@ -190,6 +197,11 @@ int main() {
     EXTI->IMR &= EXTI_IMR_MR13_Msk;
     handle_update();
   }
+
+  /* illegal memory access */
+  *(uint32_t *) (0xffffffff) = 0;
+
+
 
   while (!press_count)
     ;

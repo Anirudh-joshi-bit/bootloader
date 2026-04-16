@@ -1,5 +1,8 @@
 #pragma once
 
+#define BUSFAULT_IDENTIFIER             0x0
+#define MEMMANAGE_IDENTIFIER            0x1
+#define USAGEFAULT_IDENTIFIER           0x2
 
 #define FIRMWARE_1_ADDRESS 0x08010000
 #define FIRMWARE_2_ADDRESS 0x08020000
