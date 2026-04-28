@@ -1,4 +1,6 @@
-#include "../include/commons.h"
+#include "core.h"
+#include "usart.h"
+#include "flash.h"
 
 /* _________________________ data structures __________________________*/
 char fw_update[MAX_FW_SIZE];
@@ -198,8 +200,8 @@ int main() {
     handle_update();
   }
 
-  /* illegal memory access */
-  *(uint32_t *) (0xffffffff) = 0;
+  // /* illegal memory access */
+  // *(uint32_t *) (0xffffffff) = 0;
 
 
 
@@ -227,4 +229,5 @@ int main() {
       jump_to_firmware();
     }
   }
+  while (1);
 }

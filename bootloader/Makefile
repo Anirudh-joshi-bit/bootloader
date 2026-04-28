@@ -3,6 +3,8 @@ GREEN = \033[0;32m
 
 BUILD = build
 SRC = src
+CORE = core
+DRIVERS = drivers
 
 ARM = arm-none-eabi-
 CC = $(ARM)gcc
@@ -12,7 +14,7 @@ GDB = $(ARM)gdb
 OBJCPY = $(ARM)objcopy
 
 #flags
-INCLUDE_CMSIS_HEADERS = -Iinclude/cmsis -Iinclude/device
+INCLUDES = -Iinclude/cmsis -Iinclude/device -Iinclude/drivers -Iinclude
 MPU = -mcpu=cortex-m4 -mthumb
 OPTIMISATION = -O0
 # frestandin is important as we need to tell the compiler that there is 
@@ -21,16 +23,9 @@ OPTIMISATION = -O0
 FREESTANDING = -ffreestanding 
 
 FLASH_BASE = 0x08000000
-# sector size is 16kB
-# secto number = 0 for bootloader
-SECTOR_SIZE = 0x4000			
-SECTOR_NUMBER = 0
-FLASH_ADDRESS = $(shell printf "0x%X\n" $$(( $(FLASH_BASE) + $(SECTOR_SIZE) * $(SECTOR_NUMBER) )))
 
-
-
-C_SRC_FILES = $(wildcard $(SRC)/*.c)
-AS_SRC_FILES = $(wildcard $(SRC)/*.s)
+C_SRC_FILES = $(shell find $(SRC) -name "*.c")
+AS_SRC_FILES = $(shell find $(SRC) -name "*.s")
 
 C_OBJ_FILES =		$(patsubst $(SRC)/%.c, $(BUILD)/%_c_.o, $(C_SRC_FILES))
 AS_OBJ_FILES =		$(patsubst $(SRC)/%.s, $(BUILD)/%_as_.o, $(AS_SRC_FILES))
@@ -47,7 +42,10 @@ OPENOCD = openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
 
 default : all
 
-all : $(ELF) $(BIN)
+all : build $(ELF) $(BIN)
+
+build :
+	mkdir -p $(BUILD)/$(CORE) $(BUILD)/$(DRIVERS)
 
 flash : $(BIN)
 	$(OPENOCD) -c "program $(BIN) $(FLASH_BASE) verify reset exit"
@@ -65,14 +63,13 @@ $(ELF) : $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES)
 
 $(BUILD)/%_c_.o : $(SRC)/%.c 
 		
-	$(CC) -c -g $(INCLUDE_CMSIS_HEADERS) $(MPU) $(FREESTANDING) -O0 -g3 -fno-inline $< -o $@
+	$(CC) -c -g $(INCLUDES) $(MPU) $(FREESTANDING) -O0 -g3 -fno-inline $< -o $@
 
 $(BUILD)/%_as_.o : $(SRC)/%.s
 	
 	$(AS) $< -o $@
 
 clean : 
-	@rm $(BUILD)/*.o $(BUILD)/*.bin $(BUILD)/*.elf
-	
+	@rm -rf $(BUILD)
 
 

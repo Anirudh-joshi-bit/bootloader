@@ -1,4 +1,4 @@
-#include "../include/commons.h"
+#include "core.h"
 #include <stdint.h>
 
 
@@ -56,7 +56,4 @@ void HardFault_Handler_helper(uint32_t pc) {
   /* cannot recover */
   while (1);
 
-
 }
-
-

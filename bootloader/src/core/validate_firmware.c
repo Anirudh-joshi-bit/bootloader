@@ -1,4 +1,4 @@
-#include "../include/commons.h"
+#include "core.h"
 #include <stdint.h>
 
 bool validate_vtable(firmware_t *f) {

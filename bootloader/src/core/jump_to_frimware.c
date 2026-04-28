@@ -15,7 +15,7 @@
  *
  * */
 
-#include "../include/commons.h"
+#include "core.h"
 
 extern volatile bool boot_f1;
 extern volatile firmware_t f1;

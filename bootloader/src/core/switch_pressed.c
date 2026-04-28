@@ -1,4 +1,4 @@
-#include "../include/commons.h"
+#include "core.h"
 
 /*_________________ switch pressed_________________*/
 extern volatile uint32_t press_count;

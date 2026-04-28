@@ -1,0 +1,170 @@
+#include "core.h"
+#include "usart.h"
+#include "flash.h"
+
+#include <stdint.h>
+
+extern char fw_update[MAX_FW_SIZE];
+extern volatile uint32_t update_size;
+
+uint32_t strlen(const char *msg) {
+
+  int i = 0;
+  while (msg[i++] != '\0')
+    ;
+  return i - 1;
+}
+
+void delay(uint32_t count) {
+
+  while (count--)
+    ;
+}
+char *hex_str(uint32_t value, char *out) {
+
+  char hex_char[] = "0123456789abcdef";
+  out[0] = '0';
+  out[1] = 'x';
+
+  for (int i = 0; i < 8; i++) {
+    uint32_t ind = (value & (15 << (i * 4))) >> (i * 4);
+    int j = 9 - i;
+    out[j] = hex_char[ind];
+  }
+}
+
+void printf(const char *msg, uint32_t address) {
+
+  uint32_t value = *((uint32_t *)address);
+
+  if (strlen(msg) + 9 > MAX_STR_SIZE) {
+    __usart1_print("too large error message !!\n\r", MAX_STR_SIZE);
+    return;
+  }
+  char hex[10];
+  char __msg[MAX_STR_SIZE];
+
+  uint32_t i = 0;
+  int p = 0, q = 0;
+  bool single_sub = false;
+
+  uint32_t msg_size = strlen(msg);
+  for (; i < msg_size; i++) {
+
+    if (msg[i] == '%' && !single_sub) {
+      hex_str(value, hex);
+
+      while (q - p < 10) {
+        __msg[q++] = hex[q - p];
+      }
+      p++;
+      single_sub = true;
+    } else
+      __msg[q++] = msg[p++];
+  }
+  __msg[q] = '\0';
+  __usart1_print(__msg, strlen(__msg));
+}
+
+// uint32_t recieve_update() {
+//   printf("enter the size of the update....\n\r", 0x0);
+//
+//   for (uint32_t it = 0; it < 6; it++) { // max 6 characters....
+//     char digit = '\0';   
+//     __usart1_scan (&digit, 1);
+//
+//     // while (!(USART1->SR & USART_SR_RXNE))
+//     //   ;
+//     // digit = USART1->DR;
+//     
+//     if (digit == '\n') {
+//       printf("got the size !! -> %\n\r", (uint32_t)(&update_size));
+//       break;
+//     }
+//     if (digit < '0' || digit > '9') {
+//       printf("wrong size !!!\n\r", 0x0);
+//         printf ("size = %\n\r", (uint32_t)(&update_size));
+//       return -1;
+//     }
+//     update_size = update_size * 10 + (digit - '0');
+//   }
+//   if (update_size > MAX_FW_SIZE) {
+//     printf("too large firmware update size !!! \n\r", 0x0);
+//     return -1;
+//   }
+//
+//   printf("waiting for firmware update\n\r", 0x0);
+//   uint32_t i = 0;
+//   __usart1_scan (fw_update, update_size);
+//
+//   while (i < update_size) {
+//     // wait
+//     while (!(USART1->SR & USART_SR_RXNE))
+//       ;
+//     fw_update[i++] = USART1->DR;
+//   }
+//
+//   printf("data recieved !!! yehhhh \n\n\r", 0x0);
+//   return 0;
+// }
+
+uint32_t recieve_update() {
+  printf("enter the size of the update....\n\r", 0x0);
+
+  for (uint32_t it = 0; it < 6; it++) { // max 6 characters....
+    while (!(USART1->SR & USART_SR_RXNE))
+      ;
+    char digit = USART1->DR;
+    if (digit == '\n') {
+      printf("got the size !! -> %\n\r", (uint32_t)(&update_size));
+      break;
+    }
+    if (digit < '0' || digit > '9') {
+      printf("wrong size !!!\n\r", 0x0);
+        printf ("size = %\n\r", (uint32_t)(&update_size));
+      return -1;
+    }
+    update_size = update_size * 10 + (digit - '0');
+  }
+  if (update_size > MAX_FW_SIZE) {
+    printf("too large firmware update size !!! \n\r", 0x0);
+    return -1;
+  }
+
+  printf("waiting for firmware update\n\r", 0x0);
+  uint32_t i = 0;
+  while (i < update_size) {
+
+    // wait
+    while (!(USART1->SR & USART_SR_RXNE))
+      ;
+    fw_update[i++] = USART1->DR;
+  }
+  printf("data recieved !!! yehhhh \n\n\r", 0x0);
+  return 0;
+}
+
+
+void rollback(void) {
+
+  firmware_t old_f;
+  // old firmware is present in the COPY_ADDR section
+  init_firmware_t(COPY_ADDR, &old_f);
+
+  printf("startign rollback\n\n\r", 0x0);
+  erase_flash(old_f.__base_address);
+  printf("corupted firmware is erased\n\r", 0x0);
+
+  uint32_t copy_size =
+      (*(uint32_t *)(COPY_ADDR + 0x14)) - (*(uint32_t *)(COPY_ADDR + 0x0c));
+  flash_write(old_f.__base_address + 0x04, (const char *)(COPY_ADDR + 0x04),
+              copy_size - 0x04, NO_DELAY);
+
+  // word write => size would be 4 (not 2)
+  const uint32_t end = 0xfffffffe;
+  // &end is of type -> uint32_t * ==> need type conversion
+  flash_write(old_f.__base_address,(const char *)(&end), 4, NO_DELAY);
+  printf("new flag = %\n\r", old_f.__base_address);
+
+  printf("done recovering old firmware \n\r", 0x0);
+}
