@@ -54,6 +54,8 @@ start_debug_client : $(ELF)
 
 $(BIN) : $(ELF)
 	$(OBJCPY) -O binary --gap-fill=0x00 $(ELF) $(BIN)
+	hexdump -C $(BIN) > $(BUILD)/firmware.hex
+	arm-none-eabi-objdump -h $(ELF) > $(BUILD)/sections.txt
 
 $(ELF) : $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES)
 	$(LD) -T $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES) -o $(ELF)

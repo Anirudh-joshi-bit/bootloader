@@ -56,6 +56,8 @@ start_debug_client : $(ELF)
 $(BIN) : $(ELF)
 	# without --gap-fill=0xff -> no bytes will be emitted for padding (bad for crc)
 	$(OBJCPY) -O binary --gap-fill=0x00 $(ELF) $(BIN)
+	hexdump -c $(BIN) > $(BUILD)/firmware.hex
+	arm-none-eabi-objdump -h $(ELF) > $(BUILD)/sections.txt
 
 $(ELF) : $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES)
 	$(LD) -T $(LINKER_SCRIPT) $(C_OBJ_FILES) $(AS_OBJ_FILES) -o $(ELF)
