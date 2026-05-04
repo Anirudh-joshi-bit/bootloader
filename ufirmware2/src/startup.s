@@ -8,7 +8,7 @@
 Header:
 
     .word 0xffffffff
-    .word 0xba1a3e9f
+    .word 0x7d1ee3e4 
     .word _evtable
     .word _header_start
     .word _svtable
