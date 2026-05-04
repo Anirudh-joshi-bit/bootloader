@@ -1,9 +1,10 @@
 #include "core.h"
+#include "defines.h"
+#include "ring_buff.h"
 #include "usart.h"
 #include "flash.h"
 
 /* _________________________ data structures __________________________*/
-char fw_update[MAX_FW_SIZE];
 
 // store the address in a variable for dynamic setting
 // although the actual address ends with 0;
@@ -16,9 +17,14 @@ volatile uint32_t press_count = 0;
 volatile uint32_t delay_count = 0;
 volatile uint32_t _size_firmware1;
 volatile uint32_t _size_firmware2;
-volatile uint32_t fw_ar_ind = 0;
 volatile bool update_rec_complete = false; // flag to tell if update is recieved
 volatile uint32_t update_size = 0;
+volatile Ring_buff_t ringbuffer;
+uint8_t write_buffer [WRITE_BUFF_SIZE];
+uint16_t wb_size;
+
+bool firmware_update_mode = false;
+
 
 void init_firmware_t(uint32_t address, firmware_t *f) {
   f->__flag = *(volatile uint32_t *)(address + 0x00);
@@ -61,10 +67,10 @@ void handle_update(void) {
   firmware_t f;
   update_size = update_size / 4 * 4 + 4; // align update size by 4bytes
 
-  if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_1_ADDRESS)
+  if (*(uint32_t *)(UPDATE_ADDR + 0x0c) == FIRMWARE_1_ADDRESS)
     copy_firmware_t(&f, &f1);
 
-  else if (*(uint32_t *)(fw_update + 0x0c) == FIRMWARE_2_ADDRESS)
+  else if (*(uint32_t *)(UPDATE_ADDR + 0x0c) == FIRMWARE_2_ADDRESS)
     copy_firmware_t(&f, &f2);
 
   else {
@@ -75,15 +81,10 @@ void handle_update(void) {
   /******************** store the update in UPDATE section
    * ***************************/
 
-  if (!erase_flash(UPDATE_ADDR)) {
-    if (flash_write(UPDATE_ADDR, fw_update, update_size, NO_DELAY)) {
-      printf("ERROR in flash_write\n\r", 0x0);
-      return;
-    }
-  } else {
-    printf("ERROR in erasing Flash\n\r", 0x0);
-    return;
-  }
+  // if (flash_write(UPDATE_ADDR, fw_update, update_size, NO_DELAY)) {
+  //   printf("ERROR in flash_write\n\r", 0x0);
+  //   return;
+  // }
 
   printf("update has been saved in the update section !!!\n\r", 0x0);
 
@@ -141,7 +142,9 @@ void handle_update(void) {
 }
 
 int main() {
-    
+
+    Ring_buff_init(&ringbuffer);
+
     // enable faults (without this any fault = hardfault)
     SCB->SHCSR |= SCB_SHCSR_BUSFAULTENA_Msk;
     SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk;
@@ -211,6 +214,8 @@ int main() {
   while (delay_count--)
     ;
   if (press_count >= 3) {
+    erase_flash (UPDATE_ADDR);
+    firmware_update_mode = true;
     handle_update();
   } else if (press_count == 2) {
     if (f2_valid) {

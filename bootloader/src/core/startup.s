@@ -246,7 +246,13 @@ vector_table:
     .word SysTick_Handler       /*  systick timer handler */
 
 
-    .rept 40
+    .rept 37
+        .word Default_Handler
+    .endr
+
+    .word USART1_IRQHandler
+
+    .rept 2
         .word Default_Handler
     .endr
 

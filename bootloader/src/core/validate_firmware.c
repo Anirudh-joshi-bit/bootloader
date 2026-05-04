@@ -22,14 +22,14 @@ bool validate_vtable(firmware_t *f) {
   uint32_t FLASH_start = f->__vtable_address;
   uint32_t FLASH_size;
   if (f->__base_address == FIRMWARE_1_ADDRESS)
-    FLASH_size = 0x10000;
+    FLASH_size = f->__firmware_size;
   else if (f->__base_address == FIRMWARE_2_ADDRESS)
-    FLASH_size = 0x20000;
+    FLASH_size = f->__firmware_size;
   else {
     printf("update _base address is not valid\n\r", 0x0);
     return false;
   }
-  uint32_t FLASH_end = FLASH_start + FLASH_size;
+  uint32_t FLASH_end = f->__firmware_end;
 
   /*************************msp check*********************/
   

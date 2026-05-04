@@ -69,11 +69,6 @@ uint32_t erase_flash(uint32_t address) {
 uint32_t flash_write(uint32_t address, const char *buff, uint32_t size,
                      uint32_t simulate) {
 
-  if (simulate) {
-    printf("heavy delay is used here .. press the reset button for simulating "
-           "power off in this stage\n\r",
-           0x0);
-  }
 
   // unlock
   FLASH->KEYR = KEY1;

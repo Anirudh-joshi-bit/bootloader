@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 #define BUSFAULT_IDENTIFIER             0x0
 #define MEMMANAGE_IDENTIFIER            0x1
@@ -11,11 +12,10 @@
 #define MAX_STR_SIZE 100
 #define UPDATE_ADDR 0x08040000
 #define COPY_ADDR 0x08060000
-#define MAX_FW_SIZE 70*1024            // max size = 70 KB
 #define MAX_COMMAND_SIZE 10
 #define DELAY 1000000000
 #define NO_DELAY 0
-
+#define WRITE_BUFF_SIZE 10*1024     // in bytes
 
 typedef struct firmware_struct {
  

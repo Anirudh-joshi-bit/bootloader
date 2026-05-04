@@ -29,13 +29,20 @@ void __usart1_init(void) {
   // set for af7
   GPIOA->AFR[1] |= (7 << 4) | (7 << 8);
 
-  // enable usart
-  USART1->CR1 |= USART_CR1_UE;
   // set the baud rate (115200 in this case)
   USART1->BRR = 0x08B;
 
+  // enable usart reciever interrupt;
+  USART1->CR1 = USART_CR1_RXNEIE;
+
+  NVIC_EnableIRQ (USART1_IRQn);
+
   // enable transmitter and reciever at the end
   USART1->CR1 |= USART_CR1_RE | USART_CR1_TE;
+
+  // enable usart
+  USART1->CR1 |= USART_CR1_UE;
+
 }
 
 void __usart1_print(const char *msg, uint32_t size) {
