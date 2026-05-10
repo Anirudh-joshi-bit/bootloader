@@ -23,19 +23,22 @@ STM32F401RE Bootloader
 
 # Boot Flow ->
 
-* bootloader initiate `USART1`
-* check if any firmware is corrupted (power loss while writing update to the firmware section)
-* check if firmwares are valid or not
-*  enable `EXTI15_10` interrupt
+* bootloader initiate `USART1`.
+* create Ringbufer (`ringbuffer`), Writebuffer (`write_buffer`).
+* check if any firmware is corrupted (power loss while writing update to the firmware section).
+* check if firmwares are valid or not.
+* enable `EXTI15_10` interrupt.
 * wait for user input
         switch pressed once -> jump to Firmware1
         switch pressed twice -> jump to Firmware2
         switch pressed thrice -> wait for firmware update
 
 # firmware update process ->
-* recieve size of the update via `USART1`
-* recieve the update and store it in `RAM`
-* copy the update from RAM to UPDATE section in `FLASH`
+* recieve size of the update via `USART1`.
+* recieve firmware update from the user and write it in the flash
+(`UPDATE_ADDR`).
+* varify the update from `UPDATE_ADDR`.
+* copy the update from RAM to UPDATE section in `FLASH`.
 * copy the current firmware to `COPY` section
 * here comes the risky part !! ----> 
     copy update from `UPDATE` section to firmware section
@@ -43,7 +46,7 @@ STM32F401RE Bootloader
 
 `printf ("update succfull !!!\n\r");`
     
-* if the above message is not printed, the user need to reupload the update 
+* if the above message is not printed, the user needs to reupload the update 
     
 # Roll Back strategy ->
 *    if flag is not cleared , old fimrware is retrieved from the COPY section . At the end of this operation flag is cleared
