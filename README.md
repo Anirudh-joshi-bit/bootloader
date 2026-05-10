@@ -8,9 +8,9 @@ STM32F401RE Bootloader
 * Jump to a firmware (1 or 2)
 * Safe jump
 * validate firmwae before running it
-* update a firmware using USART 
+* streamline update a firmware via USART using Ring buffer and Write buffer
 * Logging using USART 
-* Rollback system for reliable firmware update 
+* Rollback system for powerloss resilience and reliable firmware update 
  
 
 # Flash Layout
