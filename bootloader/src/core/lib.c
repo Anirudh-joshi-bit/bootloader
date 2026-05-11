@@ -8,10 +8,10 @@
 
 // extern char fw_update[MAX_FW_SIZE];
 extern volatile uint32_t update_size;
-volatile bool recieve_size = false;
-volatile bool flag_size_recieved = false;
-volatile bool flag_wrong_size = false;
-volatile bool flag_too_big_update = false;
+extern volatile bool recieve_size;
+extern volatile bool flag_size_recieved;
+extern volatile bool flag_wrong_size;
+extern volatile bool flag_too_big_update;
 extern uint16_t wb_size;
 uint32_t update_section_end_address = UPDATE_ADDR;
 extern volatile Ring_buff_t ringbuffer;

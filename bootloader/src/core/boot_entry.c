@@ -4,6 +4,8 @@
 #include "usart.h"
 #include "flash.h"
 
+#define MAX_RECURSION_DEPTH 2
+
 /* _________________________ data structures __________________________*/
 
 // store the address in a variable for dynamic setting
@@ -22,8 +24,13 @@ volatile uint32_t update_size = 0;
 volatile Ring_buff_t ringbuffer;
 uint8_t write_buffer [WRITE_BUFF_SIZE];
 uint16_t wb_size;
-
 bool firmware_update_mode = false;
+uint8_t recursion_depth = 0;
+
+volatile bool recieve_size = false;
+volatile bool flag_size_recieved = false;
+volatile bool flag_wrong_size = false;
+volatile bool flag_too_big_update = false;
 
 
 void init_firmware_t(uint32_t address, firmware_t *f) {
@@ -55,14 +62,14 @@ void copy_firmware_t(firmware_t *f_dest, firmware_t *f_src) {
   f_dest->__reset_handler = f_src->__reset_handler;
 }
 
-void handle_update(void) {
+bool handle_update(void) {
 
   /************************* recieve update and store it in
-   * RAM***********************/
+   * UPDATE_ADDR in flash***********************/
 
   if (recieve_update()) {
     printf("ERROR in recieving update\n\r", 0x0);
-    return;
+    return 0;
   }
   firmware_t f;
   update_size = update_size / 4 * 4 + 4; // align update size by 4bytes
@@ -75,7 +82,7 @@ void handle_update(void) {
 
   else {
     printf("wrong firmware base address !!!", 0x0);
-    return;
+    return 0;
   }
 
   /******************** store the update in UPDATE section
@@ -96,11 +103,11 @@ void handle_update(void) {
   // check flag field of the firmware
   if (uf.__flag != 0xffffffff) {
     printf("ERROR .... flag field of update must be 0xffffffff\n\r", 0x0);
-    return;
+    return 0;
   }
   if (!validate_firmware(&uf)) {
     printf("ERROR .... update validation failed\n\r", 0x0);
-    return;
+    return 0;
   }
 
   /************************firmware to COPY section
@@ -108,14 +115,14 @@ void handle_update(void) {
 
   if (erase_flash(COPY_ADDR)) {
     printf("could not erase COPY section\n\r", 0x0);
-    return;
+    return 0;
   }
   if (flash_write(COPY_ADDR, (const char *)(f.__base_address),
                   f.__firmware_size, NO_DELAY)) {
 
     printf("could not write to the COPY section \n\r", 0x0);
-    return;
-  } // check this !!
+    return 0;
+  }
   printf("firmware is copied to copy section\n\r", 0x0);
 
   /********************* update to firmware
@@ -123,13 +130,13 @@ void handle_update(void) {
 
   if (erase_flash(f.__base_address)) {
     printf("could not erase FIRMWARE section\n\r", 0x0);
-    return;
+    return 0;
   }
   if (flash_write(f.__base_address, (const char *)(UPDATE_ADDR),
                   uf.__firmware_size, NO_DELAY)) {
 
     printf("could not write to the firmware section\n\r", 0x0);
-    return;
+    return 0;
   }
 
   const uint32_t end = 0xfffffffe;
@@ -139,7 +146,53 @@ void handle_update(void) {
   printf("new flag = %\n\r", f.__base_address);
 
   printf("updating firmware is done successfully!!!!\n\r", 0x0);
+
+  return 1;
 }
+
+bool switch_press (bool f1_valid, bool f2_valid){
+
+  while (!press_count)
+    ;
+  delay_count = 1000000;
+  while (delay_count--)
+    ;
+  if (press_count >= 3) {
+    erase_flash (UPDATE_ADDR);
+    firmware_update_mode = true;
+    bool status = handle_update();
+
+    if (!status && recursion_depth < MAX_RECURSION_DEPTH) {
+      printf ("error in update !!! retry\n\r", 0x0);
+      recursion_depth ++;
+      press_count = 0;
+
+      flag_size_recieved = false;
+      flag_wrong_size = false;
+      flag_too_big_update = false;
+
+      switch_press (f1_valid, f2_valid);
+    }
+  } else if (press_count == 2) {
+    if (f2_valid) {
+      boot_f1 = false;
+      jump_to_firmware();
+    } else {
+      boot_f1 = true;
+      jump_to_firmware();
+    }
+  } else {
+    if (f1_valid) {
+      boot_f1 = true;
+      jump_to_firmware();
+    } else {
+      boot_f1 = false;
+      jump_to_firmware();
+    }
+  }
+  return true;
+}
+
 
 int main() {
 
@@ -205,34 +258,10 @@ int main() {
 
   // /* illegal memory access */
   // *(uint32_t *) (0xffffffff) = 0;
-
-
-
-  while (!press_count)
-    ;
-  delay_count = 1000000;
-  while (delay_count--)
-    ;
-  if (press_count >= 3) {
-    erase_flash (UPDATE_ADDR);
-    firmware_update_mode = true;
-    handle_update();
-  } else if (press_count == 2) {
-    if (f2_valid) {
-      boot_f1 = false;
-      jump_to_firmware();
-    } else {
-      boot_f1 = true;
-      jump_to_firmware();
-    }
-  } else {
-    if (f1_valid) {
-      boot_f1 = true;
-      jump_to_firmware();
-    } else {
-      boot_f1 = false;
-      jump_to_firmware();
-    }
+  
+  bool status = switch_press (f1_valid, f2_valid);
+  if (!status){
+    printf ("too many wrong firmware update attempt !!!\n\r", 0x0);
   }
   while (1);
 }

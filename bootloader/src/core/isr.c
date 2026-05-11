@@ -26,7 +26,7 @@ void switch_pressed(void){
     if (press_count == 3){
         delay_count = 100;
         recieve_size = true;
-        EXTI-> IMR &= ~EXTI_IMR_MR13_Msk;
+        //EXTI-> IMR &= ~EXTI_IMR_MR13_Msk;
     }
 }
 void USART1_IRQHandler (void){
