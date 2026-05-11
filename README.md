@@ -26,11 +26,11 @@ The entire system is implemented using CMSIS and the STM32 reference manual with
 
 | Section | Address Range | Size | Flash Sector |
 |---|---|---|---|
-| Bootloader | `0x08000000 - 0x0800FFFF` | 64 KB | Sector 1-4 |
-| Firmware 1 | `0x08010000 - 0x0801FFFF` | 64 KB | Sector 5 |
-| Firmware 2 | `0x08020000 - 0x0803FFFF` | 128 KB | Sector 6 |
-| Update Section | `0x08040000 - 0x0805FFFF` | 128 KB | Sector 7 |
-| Copy Section | `0x08060000 - 0x0807FFFF` | 128 KB | Sector 8 |
+| Bootloader | `0x08000000 - 0x08003FFF` | 16 KB | Sector 0 |
+| Firmware 1 | `0x08004000 - 0x0801FFFF` | 112 KB | Sector 1-4 |
+| Firmware 2 | `0x08020000 - 0x0803FFFF` | 128 KB | Sector 5 |
+| Update Section | `0x08040000 - 0x0805FFFF` | 128 KB | Sector 6 |
+| Copy Section | `0x08060000 - 0x0807FFFF` | 128 KB | Sector 7 |
 
 ---
 
