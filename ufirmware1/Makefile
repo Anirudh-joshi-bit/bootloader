@@ -20,7 +20,7 @@ OPTIMISATION = -O0
 # it remove some assumption that compiler makes
 FREESTANDING = -ffreestanding 
 
-FLASH_BASE = 0x08010000
+FLASH_BASE = 0x08004000
 
 
 C_SRC_FILES = $(wildcard $(SRC)/*.c)

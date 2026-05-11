@@ -8,7 +8,7 @@
 
 // functions
 void jump_to_firmware ();
-bool validate_firmware (firmware_t *f);
+bool validate_firmware (firmware_t *f, uint32_t address);
 uint32_t crc_calc (firmware_t *fw);
 void printf (const char* msg, uint32_t addr);
 uint32_t strlen (const char *msg);

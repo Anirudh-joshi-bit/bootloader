@@ -17,8 +17,6 @@ firmware_t f2;
 volatile bool boot_f1 = true;
 volatile uint32_t press_count = 0;
 volatile uint32_t delay_count = 0;
-volatile uint32_t _size_firmware1;
-volatile uint32_t _size_firmware2;
 volatile bool update_rec_complete = false; // flag to tell if update is recieved
 volatile uint32_t update_size = 0;
 volatile Ring_buff_t ringbuffer;
@@ -88,11 +86,6 @@ bool handle_update(void) {
   /******************** store the update in UPDATE section
    * ***************************/
 
-  // if (flash_write(UPDATE_ADDR, fw_update, update_size, NO_DELAY)) {
-  //   printf("ERROR in flash_write\n\r", 0x0);
-  //   return;
-  // }
-
   printf("update has been saved in the update section !!!\n\r", 0x0);
 
   firmware_t uf;
@@ -105,7 +98,7 @@ bool handle_update(void) {
     printf("ERROR .... flag field of update must be 0xffffffff\n\r", 0x0);
     return 0;
   }
-  if (!validate_firmware(&uf)) {
+  if (!validate_firmware(&uf, UPDATE_ADDR)) {
     printf("ERROR .... update validation failed\n\r", 0x0);
     return 0;
   }
@@ -225,9 +218,9 @@ int main() {
   // printf("hii there %\n\r", f1.__vtable_address);
 
   printf("*************validating firmware1*************\n\r", 0x0);
-  f1_valid = validate_firmware(&f1);
+  f1_valid = validate_firmware(&f1, FIRMWARE_1_ADDRESS);
   printf("*************validating firmware2*************\n\r", 0x0);
-  f2_valid = validate_firmware(&f2);
+  f2_valid = validate_firmware(&f2, FIRMWARE_2_ADDRESS);
 
   printf("both the firmwares are checked\n\r", 0x0);
   // init GPIOC (for on board switch)

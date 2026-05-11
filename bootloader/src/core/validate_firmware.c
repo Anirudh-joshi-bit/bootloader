@@ -1,11 +1,11 @@
 #include "core.h"
 #include <stdint.h>
 
-bool validate_vtable(firmware_t *f) {
+bool validate_vtable(firmware_t *f, uint32_t address) {
 
   // vtable end is the next free address
   // check from address ------->    [vtable_start, vtable_end)
-  
+
   // vtable must be 128byte aligned => last 7 bits must be 0 (for stm32f401re)
   if (f->__vtable_address & ((1 << 7) - 1)) {
     printf("the vector table is not 128byte aligned !!!\n\r", 0x0);
@@ -20,23 +20,14 @@ bool validate_vtable(firmware_t *f) {
   uint32_t RAM_size = 96 * 1024; // 96kB
   uint32_t RAM_end = RAM_start + RAM_size;
   uint32_t FLASH_start = f->__vtable_address;
-  uint32_t FLASH_size;
-  if (f->__base_address == FIRMWARE_1_ADDRESS)
-    FLASH_size = f->__firmware_size;
-  else if (f->__base_address == FIRMWARE_2_ADDRESS)
-    FLASH_size = f->__firmware_size;
-  else {
-    printf("update _base address is not valid\n\r", 0x0);
-    return false;
-  }
   uint32_t FLASH_end = f->__firmware_end;
 
   /*************************msp check*********************/
-  
+
   // MSP value can be RAM end as MSP grows downword;
   if (f->__msp_value > RAM_end || f->__msp_value < RAM_start) {
 
-      printf ("MSP value is -> %\n\r", (uint32_t)(&(f->__msp_value)));
+    printf("MSP value is -> %\n\r", (uint32_t)(&(f->__msp_value)));
     printf("MSP value is invalid\n\r", 0x0);
     return false;
   }
@@ -47,16 +38,19 @@ bool validate_vtable(firmware_t *f) {
   }
 
   /************************ vtable check************************/
+  uint32_t vtable_entry =
+      address + f->__vtable_address - f->__base_address + 0x4;
+  uint32_t vtable_end = address + f->__vtable_end - f->__base_address;
 
-  for (uint32_t vtable_entry = f->__vtable_address + 0x4;
-       vtable_entry < f->__vtable_end; vtable_entry += 4) {
+  for (; vtable_entry < vtable_end; vtable_entry += 4) {
 
     uint32_t FLASH_address =
-        *((uint32_t *)vtable_entry); // peek inside vtable_entry
+        (*((uint32_t *)vtable_entry)) & (~1U); // peek inside vtable_entry
     if (FLASH_address >= FLASH_end || FLASH_address < FLASH_start) {
 
       printf("% ---- in vtable entry does not exist in the allowed flash "
-             "range\n\r", vtable_entry);
+             "range\n\r",
+             vtable_entry);
       return false;
     }
   }
@@ -64,9 +58,10 @@ bool validate_vtable(firmware_t *f) {
   return true;
 }
 
-bool validate_firmware(firmware_t *f) {
+bool validate_firmware(firmware_t *f, uint32_t address) {
 
-  if (!validate_vtable(f)) {
+  if (!validate_vtable(f, address)) {
+
     printf("vector table of the update is not valid\n\r", 0x0);
     return false;
   }

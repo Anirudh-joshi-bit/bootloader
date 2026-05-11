@@ -5,8 +5,8 @@
 #define MEMMANAGE_IDENTIFIER            0x1
 #define USAGEFAULT_IDENTIFIER           0x2
 
-#define FIRMWARE_1_ADDRESS 0x08010000
-#define FIRMWARE_2_ADDRESS 0x08020000
+#define FIRMWARE_1_ADDRESS 0x08004000     // sector 1, size = 112 KB
+#define FIRMWARE_2_ADDRESS 0x08020000     // sector 5, size = 128 KB
 #define SWITCH_PIN 13
 #define LED_PIN 5
 #define MAX_STR_SIZE 100

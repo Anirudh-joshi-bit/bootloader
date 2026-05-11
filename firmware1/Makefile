@@ -20,8 +20,8 @@ OPTIMISATION = -O0
 # it remove some assumption that compiler makes
 FREESTANDING = -ffreestanding 
  
-# sector number 4 -> size = 64KB
-FLASH_ADDRESS = 0x08010000
+# sector number 4 -> size = 112KB
+FLASH_ADDRESS = 0x08004000
 
 
 C_SRC_FILES = $(wildcard $(SRC)/*.c)
