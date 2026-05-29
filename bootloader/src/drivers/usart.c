@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "stm32f401xe.h"
+#include "usart.h"
 
 #define TX_PIN 9
 #define RX_PIN 10
@@ -57,3 +58,9 @@ void __usart1_print(const char *msg, uint32_t size) {
   }
 }
 
+
+// reset the registers of usart1;
+void __usart1_reset_reg (void){
+  RCC->APB1RSTR |= RCC_APB1RSTR_USART2RST;
+  RCC->APB1RSTR &= ~RCC_APB1RSTR_USART2RST;
+}

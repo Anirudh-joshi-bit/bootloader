@@ -75,6 +75,7 @@ bool handle_update(void) {
   if (*(uint32_t *)(UPDATE_ADDR + 0x0c) == FIRMWARE_1_ADDRESS)
     copy_firmware_t(&f, &f1);
 
+
   else if (*(uint32_t *)(UPDATE_ADDR + 0x0c) == FIRMWARE_2_ADDRESS)
     copy_firmware_t(&f, &f2);
 
@@ -159,7 +160,8 @@ bool switch_press (bool f1_valid, bool f2_valid){
       printf ("error in update !!! retry\n\r", 0x0);
       recursion_depth ++;
       press_count = 0;
-
+      
+      firmware_update_mode = false;
       flag_size_recieved = false;
       flag_wrong_size = false;
       flag_too_big_update = false;

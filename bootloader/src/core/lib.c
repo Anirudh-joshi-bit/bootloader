@@ -13,7 +13,7 @@ extern volatile bool flag_size_recieved;
 extern volatile bool flag_wrong_size;
 extern volatile bool flag_too_big_update;
 extern uint16_t wb_size;
-uint32_t update_section_end_address = UPDATE_ADDR;
+static uint32_t update_section_end_address = UPDATE_ADDR;
 extern volatile Ring_buff_t ringbuffer;
 extern uint8_t write_buffer[WRITE_BUFF_SIZE];
 volatile uint32_t fw_ar_ind = 0;
@@ -77,90 +77,12 @@ void printf(const char *msg, uint32_t address) {
   __usart1_print(__msg, strlen(__msg));
 }
 
-// uint32_t recieve_update() {
-//   printf("enter the size of the update....\n\r", 0x0);
-//
-//   for (uint32_t it = 0; it < 6; it++) { // max 6 characters....
-//     char digit = '\0';
-//     __usart1_scan (&digit, 1);
-//
-//     // while (!(USART1->SR & USART_SR_RXNE))
-//     //   ;
-//     // digit = USART1->DR;
-//
-//     if (digit == '\n') {
-//       printf("got the size !! -> %\n\r", (uint32_t)(&update_size));
-//       break;
-//     }
-//     if (digit < '0' || digit > '9') {
-//       printf("wrong size !!!\n\r", 0x0);
-//         printf ("size = %\n\r", (uint32_t)(&update_size));
-//       return -1;
-//     }
-//     update_size = update_size * 10 + (digit - '0');
-//   }
-//   if (update_size > MAX_FW_SIZE) {
-//     printf("too large firmware update size !!! \n\r", 0x0);
-//     return -1;
-//   }
-//
-//   printf("waiting for firmware update\n\r", 0x0);
-//   uint32_t i = 0;
-//   __usart1_scan (fw_update, update_size);
-//
-//   while (i < update_size) {
-//     // wait
-//     while (!(USART1->SR & USART_SR_RXNE))
-//       ;
-//     fw_update[i++] = USART1->DR;
-//   }
-//
-//   printf("data recieved !!! yehhhh \n\n\r", 0x0);
-//   return 0;
-// }
-
-// uint32_t recieve_update() {
-//   printf("enter the size of the update....\n\r", 0x0);
-//
-//   for (uint32_t it = 0; it < 6; it++) { // max 6 characters....
-//     while (!(USART1->SR & USART_SR_RXNE))
-//       ;
-//     char digit = USART1->DR;
-//     if (digit == '\n') {
-//       printf("got the size !! -> %\n\r", (uint32_t)(&update_size));
-//       break;
-//     }
-//     if (digit < '0' || digit > '9') {
-//       printf("wrong size !!!\n\r", 0x0);
-//         printf ("size = %\n\r", (uint32_t)(&update_size));
-//       return -1;
-//     }
-//     update_size = update_size * 10 + (digit - '0');
-//   }
-//   if (update_size > MAX_FW_SIZE) {
-//     printf("too large firmware update size !!! \n\r", 0x0);
-//     return -1;
-//   }
-//
-//   printf("waiting for firmware update\n\r", 0x0);
-//   uint32_t i = 0;
-//   while (i < update_size) {
-//
-//     // wait
-//     while (!(USART1->SR & USART_SR_RXNE))
-//       ;
-//     fw_update[i++] = USART1->DR;
-//   }
-//   printf("data recieved !!! yehhhh \n\n\r", 0x0);
-//   return 0;
-// }
-
 uint32_t recieve_update(void) {
 
   // recieve update size
 
   printf("enter the size of the update....\n\r", 0x0);
-
+  update_size = 0;
   recieve_size = true;
   while (1) {
     if (flag_wrong_size) {
@@ -177,6 +99,8 @@ uint32_t recieve_update(void) {
     }
   }
   recieve_size = false;
+
+  update_section_end_address = UPDATE_ADDR;
 
   // recieve firmware update !!
   while (update_section_end_address - UPDATE_ADDR < update_size) {

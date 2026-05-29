@@ -12,10 +12,14 @@
  * if we dont disable all the possible interrupt before clearning pending
  * register a new interrupt may fire and be pended !!!
  *
+ *  reset all the periferals before jumping to the application
+ *
  *
  * */
 
 #include "core.h"
+#include "usart.h"
+#include "flash.h"
 
 extern volatile bool boot_f1;
 extern volatile firmware_t f1;
@@ -24,9 +28,15 @@ extern volatile firmware_t f2;
 void jump_to_firmware() {
 
   __disable_irq();
+  
+
   if (boot_f1) {
     printf("jumping to firmware1 \n\r", 0x0);
 
+    // reset peripherals and flash registers
+    // __usart1_reset_reg();
+    // flash_reg_reset();
+    //
     NVIC_DisableIRQ(EXTI15_10_IRQn);
     // below this point no other interrupt can be pended !
     for (uint8_t i = 0; i < 8; i++) {
@@ -41,6 +51,10 @@ void jump_to_firmware() {
 
   } else {
     printf("jumping to firmware2 \n\r", 0x0);
+
+    // reset peripherals and flash registers
+    // __usart1_reset_reg();
+    // flash_reg_reset();
 
     NVIC_DisableIRQ(EXTI15_10_IRQn);
     // below this point, no new interrupt will be pended

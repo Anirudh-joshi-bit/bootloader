@@ -1,5 +1,6 @@
 #include "stm32f401xe.h"
 #include <stdint.h>
+#include "flash.h"
 
 #define KEY1 0x45670123
 #define KEY2 0xCDEF89AB
@@ -97,7 +98,21 @@ uint32_t flash_write(uint32_t address, const char *buff, uint32_t size,
     address += 4;
   }
   FLASH->CR &= ~(FLASH_CR_PG);
+
+  // lock this flash
   FLASH->CR |= FLASH_CR_LOCK;
 
   return 0;
+}
+
+
+// reset the registers of flash 
+
+void flash_reg_reset (void){
+  FLASH-> ACR = FLASH_ACR_RESET_VAL;
+  FLASH-> KEYR = FLASH_KEYR_RESET_VAL;
+  FLASH-> OPTKEYR = FLASH_OPTKEYR_RESET_VAL;
+  FLASH-> SR = FLASH_SR_RESET_VAL;
+  FLASH-> CR = FLASH_CR_RESET_VAL;
+  FLASH-> OPTCR = FLASH_OPTCR_RESET_VAL;
 }
