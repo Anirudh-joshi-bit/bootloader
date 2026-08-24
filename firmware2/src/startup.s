@@ -7,7 +7,7 @@
 .type Header, %object
 Header:
     .word 0xfffffffe
-    .word 0x77157063 
+    .word 0xe01e0253 
     .word _evtable
     .word _header_start
     .word _svtable

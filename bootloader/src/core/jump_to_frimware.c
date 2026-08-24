@@ -36,10 +36,13 @@ void jump_to_firmware() {
     // reset peripherals and flash registers
     // __usart1_reset_reg();
     // flash_reg_reset();
-    //
-    NVIC_DisableIRQ(EXTI15_10_IRQn);
+    
+    //NVIC_DisableIRQ(EXTI15_10_IRQn);
+    for (uint8_t i=0; i<2; i++){
+      NVIC-> ICER[i] = 0xffffffff;
+    }
     // below this point no other interrupt can be pended !
-    for (uint8_t i = 0; i < 8; i++) {
+    for (uint8_t i = 0; i < 2; i++) {
       NVIC->ICPR[i] = 0xffffffff;
     }
 
@@ -56,11 +59,15 @@ void jump_to_firmware() {
     // __usart1_reset_reg();
     // flash_reg_reset();
 
-    NVIC_DisableIRQ(EXTI15_10_IRQn);
-    // below this point, no new interrupt will be pended
-    for (uint8_t i = 0; i < 8; i++) {
+    //NVIC_DisableIRQ(EXTI15_10_IRQn);
+    for (uint8_t i=0; i<2; i++){
+      NVIC-> ICER[i] = 0xffffffff;
+    }
+    // below this point no other interrupt can be pended !
+    for (uint8_t i = 0; i < 2; i++) {
       NVIC->ICPR[i] = 0xffffffff;
     }
+
     __set_MSP(f2.__msp_value);
     SCB->VTOR = f2.__vtable_address;
     // before jumping the reset handler, enable irqs
